@@ -27,10 +27,10 @@ public class Reservation {
     private int userId;
     private String status;
     private boolean annulled;
-    private int price;
+    private long price;
     private int roomNumber;
 
-    public boolean getCanceled() {
+    public boolean getAnnulled() {
         return annulled;
     }
 

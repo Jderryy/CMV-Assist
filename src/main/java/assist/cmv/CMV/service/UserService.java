@@ -74,7 +74,7 @@ public class UserService {
                 return new ResponseEntity<>("Invalid phone number. (0712345678)", HttpStatus.BAD_REQUEST);
             if (user.getCreditCard() != null && (!user.getCreditCard().matches("[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}") || repository.findByCreditCard(user.getCreditCard()) != null))
                 return new ResponseEntity<>("Invalid card number. (1234-5678-9123-4567)", HttpStatus.BAD_REQUEST);
-
+            System.out.println("asdasd");
             existingUser.setName(user.getName());
             existingUser.setPassword(user.getPassword());
             existingUser.setEmail(user.getEmail());
