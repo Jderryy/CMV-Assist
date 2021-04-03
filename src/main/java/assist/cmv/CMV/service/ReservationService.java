@@ -105,6 +105,9 @@ public class ReservationService {
 
     public ResponseEntity updateReservation(Reservation reservation, int id) {
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
+        if(existingReservation==null){
+            return new ResponseEntity ("Reservation with id <" + id + "> doesn't exists.", HttpStatus.BAD_REQUEST);
+        }
         String responseError=isValid(reservation);
         if(responseError==null){
 
