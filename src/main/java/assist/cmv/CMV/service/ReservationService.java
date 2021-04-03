@@ -80,7 +80,7 @@ public class ReservationService {
     }
 
     public void test(){
-        System.out.println("cristi 2 10");
+        System.out.println("TEEEEEEEEEEEEEEEEEEEST");
     }
 
     public ResponseEntity getReservations() {
