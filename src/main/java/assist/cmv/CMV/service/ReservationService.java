@@ -80,12 +80,12 @@ public class ReservationService {
     }
 
 
-    public ResponseEntity<List<Reservation>> getReservations() {
+    public ResponseEntity getReservations() {
         List<Reservation> lst = reservationRepository.findAll();
         if(lst.size()!=0)
-            return new ResponseEntity<>(reservationRepository.findAll(),HttpStatus.OK);
+            return new ResponseEntity(reservationRepository.findAll(),HttpStatus.OK);
         else
-            return new ResponseEntity<>(reservationRepository.findAll(),HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(reservationRepository.findAll(),HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<List<Reservation>> getReservationsByUserId(int id){
@@ -102,6 +102,9 @@ public class ReservationService {
 
     public ResponseEntity updateReservation(Reservation reservation, int id) {
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
+        if(existingReservation==null){
+            return new ResponseEntity ("Reservation with id <" + id + "> doesn't exists.", HttpStatus.BAD_REQUEST);
+        }
         String responseError=isValid(reservation);
         if(responseError==null){
 

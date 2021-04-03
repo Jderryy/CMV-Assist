@@ -32,7 +32,7 @@ public class ReservationController {
 
     //for admin
     @GetMapping("/reservations")
-    public ResponseEntity<List<Reservation>> getReservations() {
+    public ResponseEntity getReservations() {
         return service.getReservations();
     }
 
