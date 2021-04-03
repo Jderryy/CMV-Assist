@@ -98,4 +98,8 @@ public class RoomService {
         }
         return new ResponseEntity<>("Can't find room with id <" + id + ">.", HttpStatus.BAD_REQUEST);
     }
+
+    public void test2 () {
+        System.out.println("mergegegegegeegeg");
+    }
 }
