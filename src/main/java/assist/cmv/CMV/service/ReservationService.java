@@ -38,18 +38,18 @@ public class ReservationService {
         if(reservation.getStartDate().before(localDate))
             return "Start date is in the past!";
         if(reservation.getEndDate().before(reservation.getStartDate()) || reservation.getStartDate().equals(reservation.getEndDate()))
-            return "Start date bigger than end date!";
+            return "Start date is bigger than end date!";
         if(!roomRepository.existsById(reservation.getRoomNumber())){
-            return "This room number doesn't exist!";
+            return "Room with id <" + reservation.getRoomNumber() + "> doesn't exists.";
         }
         else if(roomRepository.getOne(reservation.getRoomNumber()).getReservationId()>=1)
-            return "This room is already reserved!";
+            return "Room with id <" + reservation.getRoomNumber() + "> is already reserved.";
         if(!userRepository.existsById(reservation.getUserId()))
-            return "This user doesn't exist!";
+            return "There is no registred user with id <" + reservation.getUserId() + ">.";
         int roomprice=roomRepository.getOne(reservation.getRoomNumber()).getPrice();
         long diff = reservation.getEndDate().getTime() - reservation.getStartDate().getTime();
         if(TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS)>30)
-            return "You can't reserve a room for a period longer than 30 days!";
+            return "Can't reserve a room for a period longer than 30 days!";
         reservation.setPrice(TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) * roomprice);
         return null;
     }
@@ -74,7 +74,7 @@ public class ReservationService {
     public ResponseEntity getReservation(int id) {
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
         if(existingReservation==null)
-            return new ResponseEntity("This reservation doesn't exist!",HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Reservation with id <" + id + "> doesn't exists.",HttpStatus.BAD_REQUEST);
         return new ResponseEntity(existingReservation,HttpStatus.OK);
 
     }
