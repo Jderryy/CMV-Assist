@@ -80,12 +80,12 @@ public class ReservationService {
     }
 
 
-    public ResponseEntity<List<Reservation>> getReservations() {
+    public ResponseEntity getReservations() {
         List<Reservation> lst = reservationRepository.findAll();
         if(lst.size()!=0)
-            return new ResponseEntity<>(reservationRepository.findAll(),HttpStatus.OK);
+            return new ResponseEntity(reservationRepository.findAll(),HttpStatus.OK);
         else
-            return new ResponseEntity<>(reservationRepository.findAll(),HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(reservationRepository.findAll(),HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<List<Reservation>> getReservationsByUserId(int id){

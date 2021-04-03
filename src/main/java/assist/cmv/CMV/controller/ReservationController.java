@@ -26,13 +26,13 @@ public class ReservationController {
 
     //for guest
     @GetMapping("/reservations/{id}")
-    public ResponseEntity<List<Reservation>> getReservationsByUserId(@PathVariable int id){
+    public ResponseEntity getReservationsByUserId(@PathVariable int id){
         return service.getReservationsByUserId(id);
     }
 
     //for admin
     @GetMapping("/reservations")
-    public ResponseEntity<List<Reservation>> getReservations() {
+    public ResponseEntity getReservations() {
         return service.getReservations();
     }
 
