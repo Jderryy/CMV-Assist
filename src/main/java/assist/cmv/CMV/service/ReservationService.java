@@ -79,6 +79,9 @@ public class ReservationService {
 
     }
 
+    public void test(){
+        System.out.println("TEEEEEEEEEEEEEEEEEEEST");
+    }
 
     public ResponseEntity getReservations() {
         List<Reservation> lst = reservationRepository.findAll();
