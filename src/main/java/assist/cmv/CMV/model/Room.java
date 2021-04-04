@@ -29,12 +29,11 @@ public class Room {
     private int bedsNumber;
     private boolean cleaned;
     private int price;
-    private boolean availability;
 
 
 
     public boolean getAvailability() {
-        return availability;
+        return !(reservationId > 0);
     }
 
     public boolean getCleaned() {

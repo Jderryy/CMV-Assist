@@ -57,4 +57,9 @@ public class UserController {
     public ResponseEntity deleteUser(@PathVariable int id) {
         return service.deleteUser(id);
     }
+
+    @GetMapping("/users/emails")
+    public ResponseEntity findAllEmails(String body, String message) {
+        return service.sendEmailToAllUsers(body, message);
+    }
 }
