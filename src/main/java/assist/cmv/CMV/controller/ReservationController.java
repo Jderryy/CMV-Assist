@@ -48,6 +48,16 @@ public class ReservationController {
 
     }
 
+    @PutMapping("/reservation/checkin/{id}")
+    public ResponseEntity performCheckIn(@PathVariable int id){
+        return service.performCheckIn(id);
+    }
+
+    @PutMapping("/reservation/checkout/{id}")
+    public ResponseEntity performCheckOut(@PathVariable int id){
+        return service.performCheckOut(id);
+    }
+
     @GetMapping("/reservation/{id}")
     public ResponseEntity getReservationById(@PathVariable int id) {
         return service.getReservation(id);

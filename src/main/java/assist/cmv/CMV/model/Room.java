@@ -32,6 +32,7 @@ public class Room {
 
 
 
+
     public boolean getAvailability() {
         return !(reservationId > 0);
     }

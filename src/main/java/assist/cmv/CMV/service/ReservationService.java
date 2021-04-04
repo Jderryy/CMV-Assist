@@ -27,6 +27,7 @@ public class ReservationService {
 
     @Autowired
     UserRepository userRepository;
+    Date localDate = new Date();
 
     public void setData(Reservation reservation) {
         reservation.setAnnulled(false);
@@ -34,9 +35,12 @@ public class ReservationService {
     }
 
     public String isValid(Reservation reservation) {
-        Date localDate = new Date();
-        if (reservation.getStartDate().before(localDate))
-            return "Start date is in the past!";
+        long diff = reservation.getEndDate().getTime() - reservation.getStartDate().getTime();
+        long isToday =  TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+        if(isToday>1){
+            if (reservation.getStartDate().before(localDate))
+                return "Start date is in the past!";
+        }
         if (reservation.getEndDate().before(reservation.getStartDate()) || reservation.getStartDate().equals(reservation.getEndDate()))
             return "Start date is bigger than end date!";
         if (!roomRepository.existsById(reservation.getRoomNumber())) {
@@ -46,8 +50,7 @@ public class ReservationService {
         if (!userRepository.existsById(reservation.getUserId()))
             return "There is no registred user with id <" + reservation.getUserId() + ">.";
         int roomprice = roomRepository.getOne(reservation.getRoomNumber()).getPrice();
-        long diff = reservation.getEndDate().getTime() - reservation.getStartDate().getTime();
-        if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 30)
+        if (isToday > 30)
             return "Can't reserve a room for a period longer than 30 days!";
         reservation.setPrice(TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) * roomprice);
         return null;
@@ -58,7 +61,6 @@ public class ReservationService {
         if (responseError == null) {
             setData(reservation);
             reservationRepository.save(reservation);
-
             Room existingRoom = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
             existingRoom.setReservationId(reservation.getId());
             roomRepository.save(existingRoom);
@@ -107,7 +109,6 @@ public class ReservationService {
             Room existingRoom = roomRepository.findById(existingReservation.getRoomNumber()).orElse(null);
             existingRoom.setReservationId(0);
             roomRepository.save(existingRoom);
-
             existingReservation.setAnnulled(reservation.getAnnulled());
             existingReservation.setEndDate(reservation.getEndDate());
             existingReservation.setStatus(reservation.getStatus());
@@ -115,7 +116,6 @@ public class ReservationService {
             existingReservation.setUserId(reservation.getUserId());
             existingReservation.setRoomNumber(reservation.getRoomNumber());
             existingReservation.setPrice(reservation.getPrice());
-
             existingRoom = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
             existingRoom.setReservationId(id);
             roomRepository.save(existingRoom);
@@ -133,7 +133,6 @@ public class ReservationService {
         if (existingReservation == null) {
             return new ResponseEntity<>("Reservation with id <" + id + "> does not exist.", HttpStatus.BAD_REQUEST);
         }
-        Date localDate = new Date();
         if (existingReservation.getStartDate().before(localDate)) {
             return new ResponseEntity<>("Reservation with id <" + id + "> has already started (can't be canceled).", HttpStatus.BAD_REQUEST);
         }
@@ -143,5 +142,23 @@ public class ReservationService {
         roomRepository.save(existingRoom);
         reservationRepository.save(existingReservation);
         return new ResponseEntity<>("Reservation with id <" + id + " succesfully canceled.", HttpStatus.OK);
+    }
+
+
+    public ResponseEntity performCheckIn(int id) {
+        Reservation existingReservation = reservationRepository.findById(id).orElse(null);
+        if(existingReservation!=null){
+            if(existingReservation.getStartDate().before(localDate))
+                return new ResponseEntity("Can not perform check-in until "+existingReservation.getStartDate(),HttpStatus.BAD_REQUEST);
+
+        }
+        return new ResponseEntity("Can not perform check-in until "+existingReservation.getStartDate(),HttpStatus.BAD_REQUEST);
+
+    }
+
+    public ResponseEntity performCheckOut(int id) {
+        Reservation existingReservation = reservationRepository.findById(id).orElse(null);
+        return new ResponseEntity("Can not perform check-in until "+existingReservation.getStartDate(),HttpStatus.BAD_REQUEST);
+
     }
 }
