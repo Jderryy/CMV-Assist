@@ -22,14 +22,13 @@ public class UserController {
 
     @PostMapping("/addUser")
     public ResponseEntity addUser(@RequestBody User user) {
-        boolean correct = true;
+
         String pwd = user.getPassword();
         String encryptPassword = encoder.encode(pwd);
         user.setPassword(encryptPassword);
-        if (correct) {
-            return service.saveUser(user);
-        }
-        return service.saveUser(null);
+
+        return service.saveUser(user);
+
 
     }
 
