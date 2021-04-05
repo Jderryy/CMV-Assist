@@ -27,17 +27,21 @@ public class RoomService {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
         String response = "";
         if (optionalRoom.isPresent()) {
-            if (repository.existsById(room.getId()))
+            if (repository.existsById(room.getId()) && repository.countById(room.getId()) > 1)
                 response += "Room with id <" + room.getId() + "> already exists.\n";
-            if (repository.existsRoomByNfcTag(room.getNfcTag()))
+            if (repository.existsRoomByNfcTag(room.getNfcTag()) && repository.countByNfcTag(room.getNfcTag()) > 1)
                 response += "Two rooms can't have the same NFCTag (" + room.getNfcTag() + ").\n";
-            if (room.getRating() < 1 || room.getRating() > 5)
+            if (room.getRating() == 0)
+                response += "";
+            else if (room.getRating() < 1 || room.getRating() > 5)
                 response += "Rating range is between 1 and 5.\n";
             if (room.getMaxCapacity() > 6)
                 response += "Due to pandemic condition, room can hold maximum 6 persons.\n";
             if (room.getFacilities() == null || room.getFacilities().equals(""))
                 response += "A room must have at least 1 facility.\n";
-            if (room.getReview() == null || room.getReview().length() < 10 || room.getReview().length() > 100)
+            if (room.getReview() == null)
+                response += "";
+            else if (room.getReview().length() < 10 || room.getReview().length() > 100)
                 response += "A review is valid only if is between 10 and 100 characters.\n";
             if (room.getBedsNumber() < 1 || room.getBedsNumber() > 4)
                 response += "Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.\n";
@@ -97,18 +101,11 @@ public class RoomService {
             if (response == null || response.equals("")) {
                 existingRoom.setCleaned(room.getCleaned());
                 existingRoom.setFacilities(room.getFacilities());
-                //existingRoom.setId(room.getId());
                 existingRoom.setMaxCapacity(room.getMaxCapacity());
                 existingRoom.setNfcTag(room.getNfcTag());
                 existingRoom.setPetFriendly(room.getPetFriendly());
                 existingRoom.setPrice(room.getPrice());
-                existingRoom.setReservationId(room.getReservationId());
                 existingRoom.setSmoking(room.getSmoking());
-
-                Reservation reservation = reservationRepository.findById(room.getReservationId()).orElse(null);
-                reservation.setRoomNumber(room.getId());
-                reservationRepository.save(reservation);
-
                 repository.save(existingRoom);
                 return new ResponseEntity<>("Room with id <" + id + "> has been updated.", HttpStatus.OK);
             }
@@ -125,43 +122,20 @@ public class RoomService {
         return new ResponseEntity<>("Can't find room with id <" + id + ">.", HttpStatus.BAD_REQUEST);
     }
 
-    public boolean isAvailable(Room room) {
-        Room room1 = repository.findById(room.getId()).orElse(null);
-        return room1 != null && room1.getAvailability();
+    public ResponseEntity getAvailableRoomsByStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
+        List<Reservation> allReservations = reservationRepository.findAll();
+        List<Room> allAvailableRooms = new ArrayList<>();
+        for (Reservation reservation : allReservations) {
+            LocalDate currentReservationStartDate = reservation.getStartDate();
+            LocalDate currentReservationEndDate = reservation.getEndDate();
+
+            if (currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate) < 0)
+                allAvailableRooms.add(repository.findById(reservation.getRoomNumber()).orElse(null));
+            else if ((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
+                allAvailableRooms.add(repository.findById(reservation.getRoomNumber()).orElse(null));
+        }
+        return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
     }
 
-    public boolean isAvailable(int id) {
-        Room room1 = repository.findById(id).orElse(null);
-        return room1 != null && room1.getAvailability();
-    }
-
-    public ResponseEntity getAvailableRooms() {
-        return repository.countByReservationId(0) > 0 ? new ResponseEntity<>(repository.findAllByReservationId(0), HttpStatus.OK) : new ResponseEntity<>("There are no free rooms.", HttpStatus.BAD_REQUEST);
-    }
-
-    private LocalDate convertToLocalDate(Date dateToConvert) {
-        return LocalDate.ofInstant(
-                dateToConvert.toInstant(), ZoneId.systemDefault());
-    }
-
-//    public ResponseEntity getAvailableRoomsByStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
-//        List<Room> allRooms = repository.findAll();
-//        List<Room> allAvailableRooms = new ArrayList<>();
-//        System.out.println(startDate + " " + endDate);
-//        for (Room room : allRooms) {
-//            if (room.getReservationId() != 0) {
-//                LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getStartDate());
-//                LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getEndDate());
-//
-//                if(currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate)<0)
-//                    allAvailableRooms.add(room);
-//                else
-//                if((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
-//                    allAvailableRooms.add(room);
-//            } else
-//                allAvailableRooms.add(room);
-//        }
-//        return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
-//    }
 
 }
