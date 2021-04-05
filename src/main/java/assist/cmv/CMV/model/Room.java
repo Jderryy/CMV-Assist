@@ -4,8 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 
 @Data
@@ -15,16 +16,11 @@ import java.util.List;
 @Table (name ="room")
 public class Room {
 
-    //todo de modificat campul reservationIn in reservationsId
-    // care va fi o lista ce va memora toate rezervarile facute
-    // pentru o camera (o camera poate avea rezervari multiple
-    // la perioade de timp diferite)
+    //todo de scos reservainId
 
     @Id
-    @GeneratedValue
     private int id;
-    @ElementCollection
-    private List<Integer> reservationsId;
+    private int reservationId;
     private int maxCapacity;
     private String facilities;
     private boolean smoking;
@@ -35,13 +31,12 @@ public class Room {
     private int bedsNumber;
     private boolean cleaned;
     private int price;
+    private boolean availability;
 
-    public void addReservationId(int id) {
-        this.reservationsId.add(id);
-    }
+
 
     public boolean getAvailability() {
-        return !(reservationsId.size() > 0);
+        return availability;
     }
 
     public boolean getCleaned() {

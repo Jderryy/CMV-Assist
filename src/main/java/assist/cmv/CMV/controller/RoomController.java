@@ -8,10 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -36,15 +32,6 @@ public class RoomController {
         return service.getRoom(id);
     }
 
-    @GetMapping("/rooms/check/{id}")
-    public ResponseEntity getAvailabilityById(@PathVariable int id) { return new ResponseEntity<>(service.isAvailable(id), !service.isAvailable(id) ? HttpStatus.OK : HttpStatus.OK);
-    }
-
-    @GetMapping("rooms/availablebyTwoDates/{startDate}/{endDate}")
-    public ResponseEntity getAllAvailableRoomsByTwoDates(@PathVariable String startDate, @PathVariable String endDate) {
-        return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-    }
-
     @PutMapping("/rooms/update/{id}")
     public ResponseEntity updateRoom(@RequestBody Room room, @PathVariable int id) {
         return service.updateRoom(room, id);
@@ -54,8 +41,5 @@ public class RoomController {
     public ResponseEntity deleteRoom(@PathVariable int id) {
         return service.deleteRoom(id);
     }
-
-
-
 
 }
