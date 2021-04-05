@@ -23,7 +23,7 @@ public class SendEmailService {
         javaMailSender.send(simpleMailMessage);
 
         System.out.println("email sent");
-
+        System.out.println("TEST");
     }
 
 }
