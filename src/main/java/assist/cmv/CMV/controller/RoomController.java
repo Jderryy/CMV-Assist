@@ -1,7 +1,6 @@
 package assist.cmv.CMV.controller;
 
 import assist.cmv.CMV.model.Room;
-import assist.cmv.CMV.repository.RoomRepository;
 import assist.cmv.CMV.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,10 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000/")
 @RestController
 public class RoomController {
 
@@ -40,10 +36,10 @@ public class RoomController {
     public ResponseEntity getAvailabilityById(@PathVariable int id) { return new ResponseEntity<>(service.isAvailable(id), !service.isAvailable(id) ? HttpStatus.OK : HttpStatus.OK);
     }
 
-    @GetMapping("rooms/availablebyTwoDates/{startDate}/{endDate}")
-    public ResponseEntity getAllAvailableRoomsByTwoDates(@PathVariable String startDate, @PathVariable String endDate) {
-        return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-    }
+//    @GetMapping("/rooms/availablebyTwoDates/{startDate}/{endDate}")
+//    public ResponseEntity getAllAvailableRoomsByTwoDates(@PathVariable String startDate, @PathVariable String endDate) {
+//        return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+//    }
 
     @GetMapping("/rooms/available")
     public ResponseEntity getAllAvailableRooms() { return  service.getAvailableRooms();}

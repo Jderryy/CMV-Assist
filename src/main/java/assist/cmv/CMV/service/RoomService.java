@@ -144,24 +144,24 @@ public class RoomService {
                 dateToConvert.toInstant(), ZoneId.systemDefault());
     }
 
-    public ResponseEntity getAvailableRoomsByStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
-        List<Room> allRooms = repository.findAll();
-        List<Room> allAvailableRooms = new ArrayList<>();
-        System.out.println(startDate + " " + endDate);
-        for (Room room : allRooms) {
-            if (room.getReservationId() != 0) {
-                LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getStartDate());
-                LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getEndDate());
-
-                if(currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate)<0)
-                    allAvailableRooms.add(room);
-                else
-                if((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
-                    allAvailableRooms.add(room);
-            } else
-                allAvailableRooms.add(room);
-        }
-        return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
-    }
+//    public ResponseEntity getAvailableRoomsByStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
+//        List<Room> allRooms = repository.findAll();
+//        List<Room> allAvailableRooms = new ArrayList<>();
+//        System.out.println(startDate + " " + endDate);
+//        for (Room room : allRooms) {
+//            if (room.getReservationId() != 0) {
+//                LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getStartDate());
+//                LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getEndDate());
+//
+//                if(currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate)<0)
+//                    allAvailableRooms.add(room);
+//                else
+//                if((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
+//                    allAvailableRooms.add(room);
+//            } else
+//                allAvailableRooms.add(room);
+//        }
+//        return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
+//    }
 
 }
