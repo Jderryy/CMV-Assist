@@ -2,17 +2,14 @@ package assist.cmv.CMV.service;
 
 import assist.cmv.CMV.model.Reservation;
 import assist.cmv.CMV.model.Room;
-import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.repository.ReservationRepository;
 import assist.cmv.CMV.repository.RoomRepository;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -27,6 +24,8 @@ public class RoomService {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
         String response = "";
         if (optionalRoom.isPresent()) {
+
+            //TODO la update nu se modifica id
             if (repository.existsById(room.getId()) && repository.countById(room.getId()) > 1)
                 response += "Room with id <" + room.getId() + "> already exists.\n";
             if (repository.existsRoomByNfcTag(room.getNfcTag()) && repository.countByNfcTag(room.getNfcTag()) > 1)
@@ -41,7 +40,8 @@ public class RoomService {
                 response += "A room must have at least 1 facility.\n";
             if (room.getReview() == null)
                 response += "";
-            else if (room.getReview().length() < 10 || room.getReview().length() > 100)
+            //TODO la update se verifica asta si da fail
+            else if (room.getReview().length() < 0 || room.getReview().length() > 100)
                 response += "A review is valid only if is between 10 and 100 characters.\n";
             if (room.getBedsNumber() < 1 || room.getBedsNumber() > 4)
                 response += "Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.\n";

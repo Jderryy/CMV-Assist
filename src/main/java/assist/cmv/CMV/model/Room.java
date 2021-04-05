@@ -18,8 +18,8 @@ import javax.persistence.Table;
 public class Room {
 
     @Id
+    @GeneratedValue
     private int id;
-    private int reservationId;
     private int maxCapacity;
     private String facilities;
     private boolean smoking;

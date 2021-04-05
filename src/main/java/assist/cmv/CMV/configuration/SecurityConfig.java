@@ -48,15 +48,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //.antMatchers("/authenticate")
                 .antMatchers()
                 .permitAll()
-                .anyRequest()
+               .anyRequest()
 //                .authenticated()
 //                .and()
 //                .exceptionHandling()
 //                .and()
 //                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 .permitAll();
-       // http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);;
+       //http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);;
         http.cors().disable();
     }
 }

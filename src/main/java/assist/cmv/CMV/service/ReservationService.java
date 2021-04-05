@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -39,13 +37,11 @@ public class ReservationService {
     private String isValid(Reservation reservation) {
         List<Reservation> reservations= reservationRepository.findAll();
         Period period= Period.between(reservation.getStartDate(),reservation.getEndDate());
-        System.out.println(period.getDays());
         StringBuilder messageResponse= new StringBuilder();
         if (reservation.getStartDate().isBefore(localDate))
                 messageResponse.append("Start date is in the past!\n");
         if (reservation.getEndDate().isBefore(reservation.getStartDate()) || reservation.getStartDate().equals(reservation.getEndDate()))
             messageResponse.append("Start date is bigger than end date!\n");
-        System.out.println(roomRepository.existsById(reservation.getRoomNumber()));
         if (!roomRepository.existsById(reservation.getRoomNumber())) {
             messageResponse.append("Room with id <").append(reservation.getRoomNumber()).append("> doesn't exist.\n");
         }
@@ -56,7 +52,8 @@ public class ReservationService {
                     LocalDate end=r.getEndDate();
                     LocalDate s1=reservation.getStartDate();
                     LocalDate e1=reservation.getEndDate();
-                    if(start.compareTo(e1) > 0 || end.compareTo(s1) < 0)
+                    if((s1.equals(start) || e1.equals(end) || (s1.isAfter(start)&& s1.isBefore(end)) || (e1.isAfter(start)&&e1.isBefore(end)))
+                            || (s1.isBefore(start) && e1.isAfter(end)))
                         messageResponse.append("This room is already reserved between these dates!\n");
                 }
             }
@@ -149,27 +146,34 @@ public class ReservationService {
         return new ResponseEntity<>("Reservation with id <" + id + " succesfully canceled.", HttpStatus.OK);
     }
 
-
     public ResponseEntity performCheckIn(int id) {
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
         if(existingReservation!=null){
-            System.out.println(localDate);
-            System.out.println(existingReservation.getStartDate());
-            if(!localDate.equals(existingReservation.getStartDate())||localDate.isBefore(existingReservation.getStartDate()))
-                return new ResponseEntity("Can not perform check-in until "+existingReservation.getStartDate(),HttpStatus.BAD_REQUEST);
-            if(localDate.isAfter(existingReservation.getEndDate()))
-                return new ResponseEntity("Check-in time expired!",HttpStatus.BAD_REQUEST);
-
+            LocalDate start= existingReservation.getStartDate();
+            LocalDate end = existingReservation.getEndDate();
+            if(localDate.isEqual(end) || localDate.isAfter(end) ||localDate.isBefore(start))
+                return new ResponseEntity<>("Could not perform check-in!",HttpStatus.BAD_REQUEST);
+            if(existingReservation.getStatus().equals("check-in"))
+                return new ResponseEntity<>("Check-in already performed!", HttpStatus.BAD_REQUEST);
+            if(existingReservation.getStatus().equals("check-out"))
+                return new ResponseEntity<>("Check-out has been performed!", HttpStatus.BAD_REQUEST);
         }
         existingReservation.setStatus("check-in");
         reservationRepository.save(existingReservation);
-        return new ResponseEntity("Check-in performed!",HttpStatus.OK);
-
+        return new ResponseEntity<>("Check-in performed!",HttpStatus.OK);
     }
 
     public ResponseEntity performCheckOut(int id) {
-        Reservation existingReservation = reservationRepository.findById(id).orElse(null);
-        return new ResponseEntity("Can not perform check-in until "+existingReservation.getStartDate(),HttpStatus.BAD_REQUEST);
-
+        Reservation exReservation = reservationRepository.findById(id).orElse(null);
+        if(!exReservation.getStatus().equals("check-in"))
+            return new ResponseEntity<>("Can not perform check-out",HttpStatus.BAD_REQUEST);
+        if(localDate.isAfter(exReservation.getEndDate()))
+            return new ResponseEntity<>("Reservation expired!",HttpStatus.BAD_REQUEST);
+        if(localDate.isBefore(exReservation.getStartDate()))
+            return new ResponseEntity<>("Reservation did not start yet!",HttpStatus.BAD_REQUEST);
+        exReservation.setStatus("check-out");
+        reservationRepository.save(exReservation);
+        return new ResponseEntity<>("Check-out performed!",HttpStatus.OK);
     }
+
 }
