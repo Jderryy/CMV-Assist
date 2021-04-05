@@ -23,6 +23,10 @@ public class RoomService {
     @Autowired
     private ReservationRepository reservationRepository;
 
+    private List<Integer> emptyList = new ArrayList<>();
+
+    //todo de modificat la update (NFCTag)
+
     private String isValidUpdate(Room room) {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
         String response = "";
@@ -97,17 +101,13 @@ public class RoomService {
             if (response == null || response.equals("")) {
                 existingRoom.setCleaned(room.getCleaned());
                 existingRoom.setFacilities(room.getFacilities());
-                //existingRoom.setId(room.getId());
                 existingRoom.setMaxCapacity(room.getMaxCapacity());
                 existingRoom.setNfcTag(room.getNfcTag());
                 existingRoom.setPetFriendly(room.getPetFriendly());
                 existingRoom.setPrice(room.getPrice());
-                existingRoom.setReservationId(room.getReservationId());
+                existingRoom.setReservationsId(room.getReservationsId());
                 existingRoom.setSmoking(room.getSmoking());
 
-                Reservation reservation = reservationRepository.findById(room.getReservationId()).orElse(null);
-                reservation.setRoomNumber(room.getId());
-                reservationRepository.save(reservation);
 
                 repository.save(existingRoom);
                 return new ResponseEntity<>("Room with id <" + id + "> has been updated.", HttpStatus.OK);
@@ -135,10 +135,6 @@ public class RoomService {
         return room1 != null && room1.getAvailability();
     }
 
-    public ResponseEntity getAvailableRooms() {
-        return repository.countByReservationId(0) > 0 ? new ResponseEntity<>(repository.findAllByReservationId(0), HttpStatus.OK) : new ResponseEntity<>("There are no free rooms.", HttpStatus.BAD_REQUEST);
-    }
-
     private LocalDate convertToLocalDate(Date dateToConvert) {
         return LocalDate.ofInstant(
                 dateToConvert.toInstant(), ZoneId.systemDefault());
@@ -149,15 +145,16 @@ public class RoomService {
         List<Room> allAvailableRooms = new ArrayList<>();
         System.out.println(startDate + " " + endDate);
         for (Room room : allRooms) {
-            if (room.getReservationId() != 0) {
-                LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getStartDate());
-                LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getEndDate());
+            if (room.getReservationsId().size() != 0) {
+                for(int i=0; i<room.getReservationsId().size();i++) {
+                    LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationsId().get(i)).orElse(null)).getStartDate());
+                    LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationsId().get(i)).orElse(null)).getEndDate());
 
-                if(currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate)<0)
-                    allAvailableRooms.add(room);
-                else
-                if((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
-                    allAvailableRooms.add(room);
+                    if (currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate) < 0)
+                        allAvailableRooms.add(room);
+                    else if ((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
+                        allAvailableRooms.add(room);
+                }
             } else
                 allAvailableRooms.add(room);
         }

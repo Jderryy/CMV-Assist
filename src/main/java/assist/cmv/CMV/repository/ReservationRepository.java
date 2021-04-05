@@ -12,7 +12,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     @Query("SELECT u FROM Reservation u where u.userId=?1")
     List<Reservation> findByUserId(int id);
 
-
-
-
 }

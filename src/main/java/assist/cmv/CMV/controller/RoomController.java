@@ -45,9 +45,6 @@ public class RoomController {
         return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     }
 
-    @GetMapping("/rooms/available")
-    public ResponseEntity getAllAvailableRooms() { return  service.getAvailableRooms();}
-
     @PutMapping("/rooms/update/{id}")
     public ResponseEntity updateRoom(@RequestBody Room room, @PathVariable int id) {
         return service.updateRoom(room, id);
