@@ -120,7 +120,9 @@ public class UserService {
     }
 
     public ResponseEntity sendEmailToAllUsers(String message, String body) {
-        sendEmailService.sendEmail(getAllEmails().toArray(new String[0]), body, message);
+        String body1 = "doar testez sa vad daca nu a facut ceva probleme";
+        String message1="2 10";
+        sendEmailService.sendEmail(getAllEmails().toArray(new String[0]), body1, message1);
         return new ResponseEntity<>(getAllEmails(), HttpStatus.OK);
     }
 

@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class RoomController {
@@ -30,17 +33,11 @@ public class RoomController {
         return service.getRoom(id);
     }
 
-    @GetMapping("/rooms/check/{id}")
-    public ResponseEntity getAvailabilityById(@PathVariable int id) { return new ResponseEntity<>(service.isAvailable(id), !service.isAvailable(id) ? HttpStatus.OK : HttpStatus.OK);
+    @GetMapping("/rooms/availablebyTwoDates/{startDate}/{endDate}")
+    public ResponseEntity getAllAvailableRoomsByTwoDates(@PathVariable String startDate, @PathVariable String endDate) {
+        return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     }
 
-//    @GetMapping("/rooms/availablebyTwoDates/{startDate}/{endDate}")
-//    public ResponseEntity getAllAvailableRoomsByTwoDates(@PathVariable String startDate, @PathVariable String endDate) {
-//        return service.getAvailableRoomsByStartDateAndEndDate(LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")), LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-//    }
-
-    @GetMapping("/rooms/available")
-    public ResponseEntity getAllAvailableRooms() { return  service.getAvailableRooms();}
 
     @PutMapping("/rooms/update/{id}")
     public ResponseEntity updateRoom(@RequestBody Room room, @PathVariable int id) {

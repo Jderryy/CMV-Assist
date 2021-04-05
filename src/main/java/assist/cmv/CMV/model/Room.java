@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -29,10 +30,6 @@ public class Room {
     private int bedsNumber;
     private boolean cleaned;
     private int price;
-
-    public boolean getAvailability() {
-        return !(reservationId > 0);
-    }
 
     public boolean getCleaned() {
         return cleaned;
