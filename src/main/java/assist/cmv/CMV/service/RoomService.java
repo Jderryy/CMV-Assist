@@ -5,55 +5,82 @@ import assist.cmv.CMV.model.Room;
 import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.repository.ReservationRepository;
 import assist.cmv.CMV.repository.RoomRepository;
+import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @Service
 public class RoomService {
-
-    
-    //todo de rezolvat conflictul cu NFCTag
-
     @Autowired
     private RoomRepository repository;
 
     @Autowired
     private ReservationRepository reservationRepository;
 
-    public ResponseEntity addRoom(Room room) {
+    private String isValidUpdate(Room room) {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
+        String response = "";
         if (optionalRoom.isPresent()) {
             if (repository.existsById(room.getId()))
-                return new ResponseEntity<>("Room with id <" + room.getId() + "> already exists.", HttpStatus.BAD_REQUEST);
+                response += "Room with id <" + room.getId() + "> already exists.\n";
             if (repository.existsRoomByNfcTag(room.getNfcTag()))
-                return new ResponseEntity<>("Two rooms can't have the same NFCTag (" + room.getNfcTag() + ").", HttpStatus.BAD_REQUEST);
+                response += "Two rooms can't have the same NFCTag (" + room.getNfcTag() + ").\n";
             if (room.getRating() < 1 || room.getRating() > 5)
-                return new ResponseEntity<>("Rating range is between 1 and 5.", HttpStatus.BAD_REQUEST);
+                response += "Rating range is between 1 and 5.\n";
             if (room.getMaxCapacity() > 6)
-                return new ResponseEntity<>("Due to pandemic condition, room can hold maximum 6 persons.", HttpStatus.BAD_REQUEST);
+                response += "Due to pandemic condition, room can hold maximum 6 persons.\n";
             if (room.getFacilities() == null || room.getFacilities().equals(""))
-                return new ResponseEntity<>("A room must have at least 1 facility. :)", HttpStatus.BAD_REQUEST);
+                response += "A room must have at least 1 facility.\n";
             if (room.getReview() == null || room.getReview().length() < 10 || room.getReview().length() > 100)
-                return new ResponseEntity<>("A review is valid only if is between 10 and 100 characters.", HttpStatus.BAD_REQUEST);
+                response += "A review is valid only if is between 10 and 100 characters.\n";
             if (room.getBedsNumber() < 1 || room.getBedsNumber() > 4)
-                return new ResponseEntity<>("Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.", HttpStatus.BAD_REQUEST);
+                response += "Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.\n";
             if (room.getPrice() < 50 || room.getPrice() > 5000)
-                return new ResponseEntity<>("A valid price is between 50 and 5000 €.", HttpStatus.BAD_REQUEST);
+                response += "A valid price is between 50 and 5000 €.\n";
+        }
+        return response;
+    }
 
+    private String isValidAdd(Room room) {
+        Optional<Room> optionalRoom = Optional.ofNullable(room);
+        String response = "";
+        if (optionalRoom.isPresent()) {
+            if (repository.existsById(room.getId()))
+                response += "Room with id <" + room.getId() + "> already exists.\n";
+            if (repository.existsRoomByNfcTag(room.getNfcTag()))
+                response += "Two rooms can't have the same NFCTag (" + room.getNfcTag() + ").\n";
+            if (room.getMaxCapacity() > 6)
+                response += "Due to pandemic condition, room can hold maximum 6 persons.\n";
+            if (room.getFacilities() == null || room.getFacilities().equals(""))
+                response += "A room must have at least 1 facility.\n";
+            if (room.getBedsNumber() < 1 || room.getBedsNumber() > 4)
+                response += "Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.\n";
+            if (room.getPrice() < 50 || room.getPrice() > 5000)
+                response += "A valid price is between 50 and 5000 €.\n";
+        }
+        return response;
+    }
+
+    public ResponseEntity addRoom(Room room) {
+        String response = isValidAdd(room);
+        if (response == null || response.equals("")) {
+            room.setReview("");
+            room.setRating(5);
             repository.save(room);
             return new ResponseEntity<>("Room with id <" + room.getId() + "> has been added.", HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity getRooms() {
         if (repository.count() == 0)
-            return new ResponseEntity<>("Currently the hotel has no room.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Currently the hotel has no rooms.", HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(repository.findAll(), HttpStatus.OK);
     }
 
@@ -65,44 +92,76 @@ public class RoomService {
 
     public ResponseEntity updateRoom(Room room, int id) {
         Room existingRoom = repository.findById(id).orElse(null);
-        if (repository.existsById(id)) {
-            if (repository.existsById(room.getId()) && repository.countById(room.getId()) > 1)
-                return new ResponseEntity<>("The id <" + room.getId() + "> is already assigned to a room.", HttpStatus.BAD_REQUEST);
-            if (repository.existsRoomByNfcTag(room.getNfcTag()) && room.getNfcTag() != existingRoom.getNfcTag())
-                return new ResponseEntity<>("There is already a room with NFCTag <" + room.getNfcTag() + ">.", HttpStatus.BAD_REQUEST);
-            if (repository.findByReservationId(room.getReservationId()) == null)
-                return new ResponseEntity<>("There is no reservation with id <" + room.getReservationId() + "> that can be assigned to this room.", HttpStatus.BAD_REQUEST);
-            existingRoom.setAvailability(room.getAvailability());
-            existingRoom.setCleaned(room.getCleaned());
-            existingRoom.setFacilities(room.getFacilities());
-            //existingRoom.setId(room.getId());
-            existingRoom.setMaxCapacity(room.getMaxCapacity());
-            existingRoom.setNfcTag(room.getNfcTag());
-            existingRoom.setPetFriendly(room.getPetFriendly());
-            existingRoom.setPrice(room.getPrice());
-            existingRoom.setReservationId(room.getReservationId());
-            existingRoom.setSmoking(room.getSmoking());
+        String response = isValidUpdate(room);
+        if (existingRoom != null) {
+            if (response == null || response.equals("")) {
+                existingRoom.setCleaned(room.getCleaned());
+                existingRoom.setFacilities(room.getFacilities());
+                //existingRoom.setId(room.getId());
+                existingRoom.setMaxCapacity(room.getMaxCapacity());
+                existingRoom.setNfcTag(room.getNfcTag());
+                existingRoom.setPetFriendly(room.getPetFriendly());
+                existingRoom.setPrice(room.getPrice());
+                existingRoom.setReservationId(room.getReservationId());
+                existingRoom.setSmoking(room.getSmoking());
 
-            Reservation reservation = reservationRepository.findById(room.getReservationId()).orElse(null);
-            reservation.setRoomNumber(room.getId());
-            reservationRepository.save(reservation);
+                Reservation reservation = reservationRepository.findById(room.getReservationId()).orElse(null);
+                reservation.setRoomNumber(room.getId());
+                reservationRepository.save(reservation);
 
-            repository.save(existingRoom);
-            return new ResponseEntity<>("Room with id <" + id + "> has been updated.", HttpStatus.OK);
+                repository.save(existingRoom);
+                return new ResponseEntity<>("Room with id <" + id + "> has been updated.", HttpStatus.OK);
+            }
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>("Can't find room with id <" + id + ">.", HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity deleteRoom(int id) {
-        if (repository.existsById(id))
-        {
+        if (repository.existsById(id)) {
             repository.deleteById(id);
             return new ResponseEntity<>("Room with id <" + id + "> has been removed.", HttpStatus.OK);
         }
         return new ResponseEntity<>("Can't find room with id <" + id + ">.", HttpStatus.BAD_REQUEST);
     }
 
-    public void test2 () {
-        System.out.println("mergegegegegeegeg");
+    public boolean isAvailable(Room room) {
+        Room room1 = repository.findById(room.getId()).orElse(null);
+        return room1 != null && room1.getAvailability();
     }
+
+    public boolean isAvailable(int id) {
+        Room room1 = repository.findById(id).orElse(null);
+        return room1 != null && room1.getAvailability();
+    }
+
+    public ResponseEntity getAvailableRooms() {
+        return repository.countByReservationId(0) > 0 ? new ResponseEntity<>(repository.findAllByReservationId(0), HttpStatus.OK) : new ResponseEntity<>("There are no free rooms.", HttpStatus.BAD_REQUEST);
+    }
+
+    private LocalDate convertToLocalDate(Date dateToConvert) {
+        return LocalDate.ofInstant(
+                dateToConvert.toInstant(), ZoneId.systemDefault());
+    }
+
+//    public ResponseEntity getAvailableRoomsByStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
+//        List<Room> allRooms = repository.findAll();
+//        List<Room> allAvailableRooms = new ArrayList<>();
+//        System.out.println(startDate + " " + endDate);
+//        for (Room room : allRooms) {
+//            if (room.getReservationId() != 0) {
+//                LocalDate currentReservationStartDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getStartDate());
+//                LocalDate currentReservationEndDate = convertToLocalDate(Objects.requireNonNull(reservationRepository.findById(room.getReservationId()).orElse(null)).getEndDate());
+//
+//                if(currentReservationStartDate.compareTo(endDate) > 0 || currentReservationEndDate.compareTo(startDate)<0)
+//                    allAvailableRooms.add(room);
+//                else
+//                if((startDate.compareTo(currentReservationStartDate) * currentReservationStartDate.compareTo(endDate) > 0) || (startDate.compareTo(currentReservationEndDate) * currentReservationEndDate.compareTo(endDate) > 0))
+//                    allAvailableRooms.add(room);
+//            } else
+//                allAvailableRooms.add(room);
+//        }
+//        return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
+//    }
+
 }

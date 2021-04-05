@@ -35,6 +35,7 @@ public class Room {
 
 
 
+
     public boolean getAvailability() {
         return availability;
     }

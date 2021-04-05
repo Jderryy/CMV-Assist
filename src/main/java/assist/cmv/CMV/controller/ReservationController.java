@@ -1,17 +1,13 @@
 package assist.cmv.CMV.controller;
 
 import assist.cmv.CMV.model.Reservation;
-import assist.cmv.CMV.model.Room;
 import assist.cmv.CMV.service.ReservationService;
-import assist.cmv.CMV.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 public class ReservationController {
@@ -46,6 +42,16 @@ public class ReservationController {
     public ResponseEntity cancelReservation(@PathVariable int id){
         return service.cancelReservation(id);
 
+    }
+
+    @PutMapping("/reservation/checkin/{id}")
+    public ResponseEntity performCheckIn(@PathVariable int id){
+        return service.performCheckIn(id);
+    }
+
+    @PutMapping("/reservation/checkout/{id}")
+    public ResponseEntity performCheckOut(@PathVariable int id){
+        return service.performCheckOut(id);
     }
 
     @GetMapping("/reservation/{id}")

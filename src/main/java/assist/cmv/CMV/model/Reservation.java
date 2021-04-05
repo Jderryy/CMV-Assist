@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.Size;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -19,13 +19,11 @@ import java.util.Date;
 @Table(name="reservation")
 public class Reservation {
 
-    //todo de modificat Date endDate & Date startDate in LocalDate
-
     @Id
     @GeneratedValue
     private int id;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private int userId;
     private String status;
     private boolean annulled;
