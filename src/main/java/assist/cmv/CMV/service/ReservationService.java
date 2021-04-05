@@ -46,12 +46,13 @@ public class ReservationService {
         }
         if (reservation.getEndDate().isBefore(reservation.getStartDate()) || reservation.getStartDate().equals(reservation.getEndDate()))
             messageResponse+=  "Start date is bigger than end date!\n";
+
         if (!roomRepository.existsById(reservation.getRoomNumber())) {
             messageResponse+=  "Room with id <" + reservation.getRoomNumber() + "> doesn't exist.\n";
         } else {
             for (Reservation r : reservations){
                 if(r.getRoomNumber()==reservation.getRoomNumber()){
-                    if(reservation.getStartDate().isAfter(r.getStartDate()) && reservation.getEndDate().isBefore(r.getEndDate()))
+                    if(!reservation.getStartDate().isAfter(r.getStartDate()) && !reservation.getEndDate().isBefore(r.getEndDate()))
                         messageResponse+= "This room is already reserved between these dates!\n";
                 }
             }

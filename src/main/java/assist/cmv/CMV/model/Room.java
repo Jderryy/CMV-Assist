@@ -30,9 +30,6 @@ public class Room {
     private boolean cleaned;
     private int price;
 
-
-
-
     public boolean getAvailability() {
         return !(reservationId > 0);
     }
