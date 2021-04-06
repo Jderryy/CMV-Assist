@@ -30,21 +30,18 @@ public class WebController {
     UserRepository userRepository;
 
     @PostMapping("/authenticate")
-    public ResponseEntity generateToken(@RequestBody AuthRequest authRequest) throws Exception{
+    public ResponseEntity generateToken(@RequestBody AuthRequest authRequest){
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         }catch(Exception ex){
-            throw new Exception("Invalid username/password");
+            return new ResponseEntity<>("Bad credentials", HttpStatus.BAD_REQUEST);
         }
 
-
-        HashMap<String, Object> hmap = new HashMap<String, Object>();
+        HashMap<String, Object> hmap = new HashMap<>();
         hmap.put("token", jwtUtil.generateToken(authRequest.getEmail()));
-        hmap.put("id",userRepository.findByEmail(authRequest.getEmail()));
+        hmap.put("user",userRepository.findByEmail(authRequest.getEmail()));
+        return new ResponseEntity<>(hmap, HttpStatus.OK);
 
-        return new ResponseEntity<HashMap<String, Object>>(hmap, HttpStatus.OK);
-
-       // return new ResponseEntity(jwtUtil.generateToken(authRequest.getEmail()), HttpStatus.OK);
     }
 }

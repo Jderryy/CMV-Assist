@@ -12,18 +12,12 @@ public class SendEmailService {
     private JavaMailSender javaMailSender;
 
     public void sendEmail(String[] to, String body, String topic) {
-
-        System.out.println("sending email");
-
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
         simpleMailMessage.setFrom("cristianhreceniuc1@gmail.com");
         simpleMailMessage.setTo(to);
         simpleMailMessage.setSubject(topic);
         simpleMailMessage.setText(body);
         javaMailSender.send(simpleMailMessage);
-
-        System.out.println("email sent");
-        System.out.println("TEST");
     }
 
 }

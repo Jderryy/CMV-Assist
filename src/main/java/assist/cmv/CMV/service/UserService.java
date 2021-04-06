@@ -1,6 +1,10 @@
 package assist.cmv.CMV.service;
 
+import assist.cmv.CMV.model.Reservation;
+import assist.cmv.CMV.model.Room;
 import assist.cmv.CMV.model.User;
+import assist.cmv.CMV.repository.ReservationRepository;
+import assist.cmv.CMV.repository.RoomRepository;
 import assist.cmv.CMV.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,12 @@ public class UserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     private String isValidAdd(User user) {
         String response = "";
@@ -120,11 +130,25 @@ public class UserService {
     }
 
     public ResponseEntity sendEmailToAllUsers(String message, String body) {
-        String body1 = "doar testez sa vad daca nu a facut ceva probleme";
-        String message1="2 10";
-        sendEmailService.sendEmail(getAllEmails().toArray(new String[0]), body1, message1);
+        sendEmailService.sendEmail(getAllEmails().toArray(new String[0]), body, message);
         return new ResponseEntity<>(getAllEmails(), HttpStatus.OK);
     }
 
 
+    public ResponseEntity lock(int id, int nfcTag) {
+        System.out.println("ID: " + id);
+        System.out.println("nfcTag: "+nfcTag);
+        User existsUser = repository.findById(id).orElse(null);
+        if(existsUser!=null){
+            List<Reservation> reservations = reservationRepository.findAll();
+            for (Reservation r : reservations){
+                if(r.getUserId()==id){
+                    Room r1 = roomRepository.getOne(r.getRoomNumber());
+                    if(nfcTag == r1.getNfcTag())
+                        return new ResponseEntity<>("Succes!",HttpStatus.OK);
+                }
+            }
+        }
+        return new ResponseEntity<>("Failed to match the NFCTag", HttpStatus.BAD_REQUEST);
+    }
 }

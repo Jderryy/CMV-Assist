@@ -1,5 +1,6 @@
 package assist.cmv.CMV.controller;
 
+import assist.cmv.CMV.model.NFCRequest;
 import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +20,29 @@ public class UserController {
     private BCryptPasswordEncoder encoder;
 
 
-    @PostMapping("/addUser")
+    @PostMapping("/user/addUser")
     public ResponseEntity addUser(@RequestBody User user) {
 
         String pwd = user.getPassword();
         String encryptPassword = encoder.encode(pwd);
         user.setPassword(encryptPassword);
-
         return service.saveUser(user);
-
 
     }
 
-    @GetMapping("/users")
+    @PostMapping("/user/{id}/lock")
+    public ResponseEntity lock(@RequestBody int nfcRequest, @PathVariable int id, @RequestHeader("Token") String token){
+        System.out.println(token);
+        System.out.println(id+ "  nfc" +nfcRequest);
+        return service.lock(id,nfcRequest);
+    }
+
+    @GetMapping("/user/list")
     public ResponseEntity getUsers() {
         return service.getUsers();
     }
 
-    @GetMapping("/userById/{id}")
+    @GetMapping("/user/id/{id}")
     public ResponseEntity findUserById(@PathVariable int id) {
         return service.getUserById(id);
     }
@@ -57,7 +63,7 @@ public class UserController {
     }
 
     @GetMapping("/users/emails")
-    public ResponseEntity findAllEmails(String body, String message) {
+    public ResponseEntity sendEmails(String body, String message) {
         return service.sendEmailToAllUsers(body, message);
     }
 }

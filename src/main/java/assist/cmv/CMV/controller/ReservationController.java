@@ -9,25 +9,25 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("/api")
+
 public class ReservationController {
 
     @Autowired
     private ReservationService service;
 
-    @PostMapping("/addReservation")
+    @PostMapping("/reservation/addReservation")
     public ResponseEntity addReservation(@RequestBody Reservation reservation) {
         return service.addReservation(reservation);
     }
 
     //for guest
-    @GetMapping("/reservations/{id}")
+    @GetMapping("/reservation/list/{id}")
     public ResponseEntity getReservationsByUserId(@PathVariable int id){
         return service.getReservationsByUserId(id);
     }
 
     //for admin
-    @GetMapping("/reservations")
+    @GetMapping("/reservation/list")
     public ResponseEntity getReservations() {
         return service.getReservations();
     }

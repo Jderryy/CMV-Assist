@@ -28,7 +28,7 @@ public class RoomService {
             //TODO la update nu se modifica id
             if (repository.existsById(room.getId()) && repository.countById(room.getId()) > 1)
                 response += "Room with id <" + room.getId() + "> already exists.\n";
-            if (repository.existsRoomByNfcTag(room.getNfcTag()) && repository.countByNfcTag(room.getNfcTag()) > 1)
+            if (repository.existsRoomByNfcTag(room.getNfcTag()) && repository.countByNfcTag(room.getNfcTag()) > 0)
                 response += "Two rooms can't have the same NFCTag (" + room.getNfcTag() + ").\n";
             if (room.getRating() == 0)
                 response += "";
@@ -40,9 +40,6 @@ public class RoomService {
                 response += "A room must have at least 1 facility.\n";
             if (room.getReview() == null)
                 response += "";
-            //TODO la update se verifica asta si da fail
-            else if (room.getReview().length() < 0 || room.getReview().length() > 100)
-                response += "A review is valid only if is between 10 and 100 characters.\n";
             if (room.getBedsNumber() < 1 || room.getBedsNumber() > 4)
                 response += "Due to pandemic condition, a room must hold 1 bed at least and 4 beds maximum.\n";
             if (room.getPrice() < 50 || room.getPrice() > 5000)

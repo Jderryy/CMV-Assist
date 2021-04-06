@@ -10,11 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
-
 
 @Service
 public class ReservationService {
@@ -36,6 +34,7 @@ public class ReservationService {
 
     private String isValid(Reservation reservation) {
         List<Reservation> reservations= reservationRepository.findAll();
+
         Period period= Period.between(reservation.getStartDate(),reservation.getEndDate());
         StringBuilder messageResponse= new StringBuilder();
         if (reservation.getStartDate().isBefore(localDate))
@@ -58,7 +57,7 @@ public class ReservationService {
                 }
             }
             int roomprice = roomRepository.getOne(reservation.getRoomNumber()).getPrice();
-            if (period.getDays() > 30)
+            if (period.getDays() > 30 || period.getMonths() >=1 || period.getYears()>=1)
                 messageResponse.append("Can't reserve a room for a period longer than 30 days! \n");
             reservation.setPrice(period.getDays() * roomprice);
         }
@@ -134,6 +133,7 @@ public class ReservationService {
 
 
     public ResponseEntity cancelReservation(int id) {
+        //TODO daca e azi, nu trebuie sa se poata anula
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
         if (existingReservation == null) {
             return new ResponseEntity<>("Reservation with id <" + id + "> does not exist.", HttpStatus.BAD_REQUEST);
