@@ -1,6 +1,5 @@
 package assist.cmv.CMV.controller;
 
-import assist.cmv.CMV.model.NFCRequest;
 import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,8 @@ public class UserController {
 
     @PostMapping("/user/addUser")
     public ResponseEntity addUser(@RequestBody User user) {
+
+
 
         String pwd = user.getPassword();
         String encryptPassword = encoder.encode(pwd);

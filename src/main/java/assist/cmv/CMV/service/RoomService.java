@@ -3,8 +3,10 @@ package assist.cmv.CMV.service;
 import assist.cmv.CMV.model.Reservation;
 import assist.cmv.CMV.model.Room;
 import assist.cmv.CMV.model.RoomPhone;
+import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.repository.ReservationRepository;
 import assist.cmv.CMV.repository.RoomRepository;
+import assist.cmv.CMV.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ public class RoomService {
 
     @Autowired
     private ReservationRepository reservationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private String isValidUpdate(Room room) {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
@@ -74,6 +79,7 @@ public class RoomService {
         if (response == null || response.equals("")) {
             room.setReview("");
             room.setRating(5);
+            room.setCleaned(true);
             repository.save(room);
             return new ResponseEntity<>("Room with id <" + room.getId() + "> has been added.", HttpStatus.OK);
         }
@@ -145,4 +151,20 @@ public class RoomService {
         return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
+    public ResponseEntity cleanRoom(int id, int nfcTag) {
+        if(userRepository.existsById(id)){
+            List<Reservation> reservations= reservationRepository.findAll();
+            for(Reservation r : reservations){
+                if(r.getUserId()==id){
+                    Room room= repository.getOne(r.getRoomNumber());
+                    if(room.getNfcTag()==nfcTag){
+                        room.setCleaned(true);
+                        return new ResponseEntity("Cleaned succesful!", HttpStatus.OK);
+                    }
+                }
+            }
+
+        }
+        return new ResponseEntity("Bad request", HttpStatus.BAD_REQUEST);
+    }
 }

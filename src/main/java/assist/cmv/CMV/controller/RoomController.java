@@ -27,6 +27,12 @@ public class RoomController {
         return service.getRooms();
     }
 
+    @PutMapping("/room/clean/{id}")
+    public ResponseEntity clean(@PathVariable int id, @RequestBody int nfcTag ){
+        return  service.cleanRoom(id, nfcTag);
+    }
+
+
     @GetMapping("/room/listPhone")
     public ResponseEntity getRoomsPhone(@RequestHeader("Token") String token) {
         return service.getRoomsPhone(token);

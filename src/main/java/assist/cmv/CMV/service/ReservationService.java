@@ -62,7 +62,7 @@ public class ReservationService {
             reservation.setPrice(period.getDays() * roomprice);
         }
         if (!userRepository.existsById(reservation.getUserId()))
-            messageResponse.append("There is no registred user with id <").append(reservation.getUserId()).append(">.\n");
+            messageResponse.append("There is no registred suser with id <").append(reservation.getUserId()).append(">.\n");
         return messageResponse.toString();
     }
 
