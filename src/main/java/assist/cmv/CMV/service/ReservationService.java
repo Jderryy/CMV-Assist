@@ -87,8 +87,17 @@ public class ReservationService {
 
     public ResponseEntity getReservations() {
         List<Reservation> lst = reservationRepository.findAll();
-        if (lst.size() != 0)
+        if (lst.size() != 0) {
+            for (Reservation r : lst) {
+                if (r.getEndDate().isAfter(localDate) && !r.getStatus().equals("check-out")) {
+                    r.setStatus("auto check-out");
+                    r.setAnnulled(true);
+                    reservationRepository.save(r);
+                }
+            }
+
             return new ResponseEntity<>(reservationRepository.findAll(), HttpStatus.OK);
+        }
         else
             return new ResponseEntity<>(reservationRepository.findAll(), HttpStatus.BAD_REQUEST);
     }
