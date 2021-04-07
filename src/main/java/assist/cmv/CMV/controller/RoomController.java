@@ -27,6 +27,11 @@ public class RoomController {
         return service.getRooms();
     }
 
+    @GetMapping("/room/listPhone")
+    public ResponseEntity getRoomsPhone(@RequestHeader("Token") String token) {
+        return service.getRoomsPhone(token);
+    }
+
     @GetMapping("/room/{id}")
     public ResponseEntity getRoomById(@PathVariable int id) {
         return service.getRoom(id);

@@ -54,6 +54,26 @@ public class ReservationController {
         return service.performCheckOut(id);
     }
 
+    @PutMapping("/reservation/checkinPhone/{id}")
+    public ResponseEntity performCheckIn(@PathVariable int id, @RequestBody int nfcTag){
+        return service.performCheckInPhone(id, nfcTag);
+    }
+
+    @PutMapping("/reservation/checkoutPhone/{id}")
+    public ResponseEntity performCheckOut(@PathVariable int id, @RequestBody int nfcTag){
+        return service.performCheckOutPhone(id, nfcTag);
+    }
+
+    @PutMapping("/reservation/lockPhone/{id}")
+    public ResponseEntity performLockPhone(@PathVariable int id, @RequestBody int nfcTag){
+        return service.performLockPhone(id, nfcTag);
+    }
+
+    @PutMapping("/reservation/unlockPhone/{id}")
+    public ResponseEntity performUnlockPhone(@PathVariable int id, @RequestBody int nfcTag){
+        return service.performUnlockPhone(id, nfcTag);
+    }
+
     @GetMapping("/reservation/{id}")
     public ResponseEntity getReservationById(@PathVariable int id) {
         return service.getReservation(id);

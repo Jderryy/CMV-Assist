@@ -30,6 +30,17 @@ public class UserController {
 
     }
 
+    @PostMapping("/user/addUserPhone")
+    public ResponseEntity addUserPhone(@RequestBody User user) {
+
+        String pwd = user.getPassword();
+        String encryptPassword = encoder.encode(pwd);
+        user.setPassword(encryptPassword);
+        user.setRoleId(2);
+        return service.saveUser(user);
+
+    }
+
     @PostMapping("/user/{id}/lock")
     public ResponseEntity lock(@RequestBody int nfcRequest, @PathVariable int id, @RequestHeader("Token") String token){
         System.out.println(token);

@@ -2,6 +2,7 @@ package assist.cmv.CMV.service;
 
 import assist.cmv.CMV.model.Reservation;
 import assist.cmv.CMV.model.Room;
+import assist.cmv.CMV.model.RoomPhone;
 import assist.cmv.CMV.repository.ReservationRepository;
 import assist.cmv.CMV.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,5 +135,14 @@ public class RoomService {
         return new ResponseEntity<>(allAvailableRooms, HttpStatus.OK);
     }
 
+    public ResponseEntity getRoomsPhone(String token) {
+        List<Room> allRooms = repository.findAll();
+        List<RoomPhone> allPhoneRooms = new ArrayList<>();
+        for (Room room : allRooms)
+            allPhoneRooms.add(new RoomPhone(room.getId(), room.getNfcTag(), room.getCleaned()));
+        if (!allPhoneRooms.isEmpty())
+            return new ResponseEntity<>(allPhoneRooms, HttpStatus.OK);
+        return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
+    }
 
 }

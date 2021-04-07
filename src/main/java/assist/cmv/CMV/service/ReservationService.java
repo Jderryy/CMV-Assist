@@ -2,12 +2,14 @@ package assist.cmv.CMV.service;
 
 import assist.cmv.CMV.model.Reservation;
 import assist.cmv.CMV.model.Room;
+import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.repository.ReservationRepository;
 import assist.cmv.CMV.repository.RoomRepository;
 import assist.cmv.CMV.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,7 +27,7 @@ public class ReservationService {
 
     @Autowired
     private UserRepository userRepository;
-    private final LocalDate localDate =  LocalDate.now();
+    private final LocalDate localDate = LocalDate.now();
 
     private void setData(Reservation reservation) {
         reservation.setAnnulled(false);
@@ -33,31 +35,30 @@ public class ReservationService {
     }
 
     private String isValid(Reservation reservation) {
-        List<Reservation> reservations= reservationRepository.findAll();
+        List<Reservation> reservations = reservationRepository.findAll();
 
-        Period period= Period.between(reservation.getStartDate(),reservation.getEndDate());
-        StringBuilder messageResponse= new StringBuilder();
+        Period period = Period.between(reservation.getStartDate(), reservation.getEndDate());
+        StringBuilder messageResponse = new StringBuilder();
         if (reservation.getStartDate().isBefore(localDate))
-                messageResponse.append("Start date is in the past!\n");
+            messageResponse.append("Start date is in the past!\n");
         if (reservation.getEndDate().isBefore(reservation.getStartDate()) || reservation.getStartDate().equals(reservation.getEndDate()))
             messageResponse.append("Start date is bigger than end date!\n");
         if (!roomRepository.existsById(reservation.getRoomNumber())) {
             messageResponse.append("Room with id <").append(reservation.getRoomNumber()).append("> doesn't exist.\n");
-        }
-        else {
-            for (Reservation r : reservations){
-                if(r.getRoomNumber()==reservation.getRoomNumber()){
-                    LocalDate start=r.getStartDate();
-                    LocalDate end=r.getEndDate();
-                    LocalDate s1=reservation.getStartDate();
-                    LocalDate e1=reservation.getEndDate();
-                    if((s1.equals(start) || e1.equals(end) || (s1.isAfter(start)&& s1.isBefore(end)) || (e1.isAfter(start)&&e1.isBefore(end)))
+        } else {
+            for (Reservation r : reservations) {
+                if (r.getRoomNumber() == reservation.getRoomNumber()) {
+                    LocalDate start = r.getStartDate();
+                    LocalDate end = r.getEndDate();
+                    LocalDate s1 = reservation.getStartDate();
+                    LocalDate e1 = reservation.getEndDate();
+                    if ((s1.equals(start) || e1.equals(end) || (s1.isAfter(start) && s1.isBefore(end)) || (e1.isAfter(start) && e1.isBefore(end)))
                             || (s1.isBefore(start) && e1.isAfter(end)))
                         messageResponse.append("This room is already reserved between these dates!\n");
                 }
             }
             int roomprice = roomRepository.getOne(reservation.getRoomNumber()).getPrice();
-            if (period.getDays() > 30 || period.getMonths() >=1 || period.getYears()>=1)
+            if (period.getDays() > 30 || period.getMonths() >= 1 || period.getYears() >= 1)
                 messageResponse.append("Can't reserve a room for a period longer than 30 days! \n");
             reservation.setPrice(period.getDays() * roomprice);
         }
@@ -148,32 +149,179 @@ public class ReservationService {
 
     public ResponseEntity performCheckIn(int id) {
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
-        if(existingReservation!=null){
-            LocalDate start= existingReservation.getStartDate();
+        if (existingReservation != null) {
+            LocalDate start = existingReservation.getStartDate();
             LocalDate end = existingReservation.getEndDate();
-            if(localDate.isEqual(end) || localDate.isAfter(end) ||localDate.isBefore(start))
-                return new ResponseEntity<>("Could not perform check-in!",HttpStatus.BAD_REQUEST);
-            if(existingReservation.getStatus().equals("check-in"))
+
+            if (localDate.isEqual(end) || localDate.isAfter(end) || localDate.isBefore(start))
+                return new ResponseEntity<>("Could not perform check-in!", HttpStatus.BAD_REQUEST);
+            if (existingReservation.getStatus().equals("check-in"))
                 return new ResponseEntity<>("Check-in already performed!", HttpStatus.BAD_REQUEST);
-            if(existingReservation.getStatus().equals("check-out"))
+            if (existingReservation.getStatus().equals("check-out"))
                 return new ResponseEntity<>("Check-out has been performed!", HttpStatus.BAD_REQUEST);
         }
         existingReservation.setStatus("check-in");
         reservationRepository.save(existingReservation);
-        return new ResponseEntity<>("Check-in performed!",HttpStatus.OK);
+        return new ResponseEntity<>("Check-in performed!", HttpStatus.OK);
     }
 
     public ResponseEntity performCheckOut(int id) {
         Reservation exReservation = reservationRepository.findById(id).orElse(null);
-        if(!exReservation.getStatus().equals("check-in"))
-            return new ResponseEntity<>("Can not perform check-out",HttpStatus.BAD_REQUEST);
-        if(localDate.isAfter(exReservation.getEndDate()))
-            return new ResponseEntity<>("Reservation expired!",HttpStatus.BAD_REQUEST);
-        if(localDate.isBefore(exReservation.getStartDate()))
-            return new ResponseEntity<>("Reservation did not start yet!",HttpStatus.BAD_REQUEST);
+        if (!exReservation.getStatus().equals("check-in"))
+            return new ResponseEntity<>("Can not perform check-out", HttpStatus.BAD_REQUEST);
+        if (localDate.isAfter(exReservation.getEndDate()))
+            return new ResponseEntity<>("Reservation expired!", HttpStatus.BAD_REQUEST);
+        if (localDate.isBefore(exReservation.getStartDate()))
+            return new ResponseEntity<>("Reservation did not start yet!", HttpStatus.BAD_REQUEST);
         exReservation.setStatus("check-out");
         reservationRepository.save(exReservation);
-        return new ResponseEntity<>("Check-out performed!",HttpStatus.OK);
+        return new ResponseEntity<>("Check-out performed!", HttpStatus.OK);
+    }
+
+
+    public ResponseEntity performCheckInPhone(int id, int nfcTag) {
+        boolean ok = true;
+        StringBuilder errorMessage = new StringBuilder();
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            List<Reservation> allReservations = reservationRepository.findAll();
+            for (Reservation reservation : allReservations) {
+                Room room = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
+                if (reservation.getUserId() == id && room.getNfcTag() == nfcTag) {
+                    ok = true;
+                    LocalDate start = reservation.getStartDate();
+                    LocalDate end = reservation.getEndDate();
+                    if (localDate.isEqual(end) || localDate.isAfter(end) || localDate.isBefore(start)) {
+                        ok = false;
+                        errorMessage.append("Could not perform check-in!");
+                    }
+                    if (reservation.getStatus().equals("check-in")) {
+                        ok = false;
+                        errorMessage.append("Check-in already performed!");
+                    }
+                    if (reservation.getStatus().equals("check-out")) {
+                        ok = false;
+                        errorMessage.append("Check-out has been performed!");
+                    }
+                    if (ok) {
+                        reservation.setStatus("check-in");
+                        reservationRepository.save(reservation);
+                        return new ResponseEntity<>("Check-in performed!", HttpStatus.OK);
+                    }
+                }
+            }
+        } else
+            return new ResponseEntity<>("User with id <" + id + "> not found.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+    }
+
+
+    public ResponseEntity performCheckOutPhone(int id, int nfcTag) {
+        boolean ok = true;
+        StringBuilder errorMessage = new StringBuilder();
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            List<Reservation> allReservations = reservationRepository.findAll();
+            for (Reservation reservation : allReservations) {
+                ok = true;
+                Room room = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
+                if (reservation.getUserId() == id && room.getNfcTag() == nfcTag) {
+                    if (reservation.getStatus().equals("new") ||reservation.getStatus().equals("unlocked")) {
+                        ok = false;
+                        errorMessage.append("Can not perform check-out");
+                    }
+                    if(reservation.getStatus().equals("check-out")) {
+                        ok=false;
+                        errorMessage.append("Check out is already performed.");
+                    }
+                    if (localDate.isAfter(reservation.getEndDate())) {
+                        ok = false;
+                        errorMessage.append("Reservation expired!");
+                    }
+                    if (localDate.isBefore(reservation.getStartDate())) {
+                        ok = false;
+                        errorMessage.append("Reservation did not start yet!");
+                    }
+                    if (ok) {
+                        reservation.setStatus("check-out");
+                        reservationRepository.save(reservation);
+                        return new ResponseEntity<>("Check-out performed!", HttpStatus.OK);
+                    }
+                }
+            }
+        } else
+            return new ResponseEntity<>("User with id <" + id + "> not found.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+    }
+
+
+    public ResponseEntity performLockPhone(int id, int nfcTag) {
+        boolean ok = true;
+        StringBuilder errorMessage = new StringBuilder();
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            List<Reservation> allReservations = reservationRepository.findAll();
+            for (Reservation reservation : allReservations) {
+                Room room = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
+                if (reservation.getUserId() == id && room.getNfcTag() == nfcTag) {
+                    ok = true;
+                    if(reservation.getStatus().equals("locked")) {
+                        ok = true;
+                        errorMessage.append("Door is already locked.");
+                    }
+                    if(reservation.getStatus().equals("check-out")) {
+                        ok=false;
+                        errorMessage.append("Reservation checked-out.");
+                    }
+                    if(reservation.getStatus().equals("new")) {
+                        ok =false;
+                        errorMessage.append("Reservation did not start yet");
+                    }
+                    if (ok) {
+                        reservation.setStatus("locked");
+                        reservationRepository.save(reservation);
+                        return new ResponseEntity<>("Door locked", HttpStatus.OK);
+                    }
+                }
+            }
+        } else
+            return new ResponseEntity<>("User with id <" + id + "> not found.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+    }
+
+
+    public ResponseEntity performUnlockPhone(int id, int nfcTag) {
+        boolean ok = true;
+        StringBuilder errorMessage = new StringBuilder();
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            List<Reservation> allReservations = reservationRepository.findAll();
+            for (Reservation reservation : allReservations) {
+                ok = true;
+                Room room = roomRepository.findById(reservation.getRoomNumber()).orElse(null);
+                if (reservation.getUserId() == id && room.getNfcTag() == nfcTag) {
+                    if(reservation.getStatus().equals("unlocked")) {
+                        ok=false;
+                        errorMessage.append("Door is already unlocked.");
+                    }
+                    if(reservation.getStatus().equals("check-out")) {
+                        ok=false;
+                        errorMessage.append("Reservation checked-out.");
+                    }
+                    if(reservation.getStatus().equals("new")){
+                        ok = false;
+                        errorMessage.append("Reservation did not start yet.");
+                    }
+                    if (ok) {
+                        reservation.setStatus("unlocked");
+                        reservationRepository.save(reservation);
+                        return new ResponseEntity<>("Door unlocked.", HttpStatus.OK);
+                    }
+                }
+            }
+        } else
+            return new ResponseEntity<>("User with id <" + id + "> not found.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
     }
 
 }
