@@ -9,7 +9,6 @@ import assist.cmv.CMV.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -52,8 +51,8 @@ public class ReservationService {
                     LocalDate end = r.getEndDate();
                     LocalDate s1 = reservation.getStartDate();
                     LocalDate e1 = reservation.getEndDate();
-                    if ((s1.equals(start) || e1.equals(end) || (s1.isAfter(start) && s1.isBefore(end)) || (e1.isAfter(start) && e1.isBefore(end)))
-                            || (s1.isBefore(start) && e1.isAfter(end)))
+                    if (((s1.equals(start) || e1.equals(end) || (s1.isAfter(start) && s1.isBefore(end)) || (e1.isAfter(start) && e1.isBefore(end)))
+                            || (s1.isBefore(start) && e1.isAfter(end))) && r.getAnnulled()==false)
                         messageResponse.append("This room is already reserved between these dates!\n");
                 }
             }
@@ -134,14 +133,18 @@ public class ReservationService {
 
 
     public ResponseEntity cancelReservation(int id) {
-        //TODO daca e azi, nu trebuie sa se poata anula
         Reservation existingReservation = reservationRepository.findById(id).orElse(null);
         if (existingReservation == null) {
             return new ResponseEntity<>("Reservation with id <" + id + "> does not exist.", HttpStatus.BAD_REQUEST);
         }
-        if (existingReservation.getStartDate().isBefore(localDate)) {
+        if (existingReservation.getStartDate().isBefore(localDate) || existingReservation.getStartDate().equals(localDate)) {
             return new ResponseEntity<>("Reservation with id <" + id + "> has already started (can't be canceled).", HttpStatus.BAD_REQUEST);
         }
+        if(existingReservation.getAnnulled()==true){
+            return new ResponseEntity<>("Reservation with id <" + id + "> has already been canceled (can't be canceled).", HttpStatus.BAD_REQUEST);
+
+        }
+
         existingReservation.setAnnulled(true);
         reservationRepository.save(existingReservation);
         return new ResponseEntity<>("Reservation with id <" + id + " succesfully canceled.", HttpStatus.OK);
@@ -167,12 +170,13 @@ public class ReservationService {
 
     public ResponseEntity performCheckOut(int id) {
         Reservation exReservation = reservationRepository.findById(id).orElse(null);
-        if (!exReservation.getStatus().equals("check-in"))
-            return new ResponseEntity<>("Can not perform check-out", HttpStatus.BAD_REQUEST);
+        if (!exReservation.getStatus().equals("check-in") || !exReservation.getStatus().equals("locked") || !exReservation.getStatus().equals("unlocked"))
+            return new ResponseEntity<>("You need to perform check-in first!", HttpStatus.BAD_REQUEST);
         if (localDate.isAfter(exReservation.getEndDate()))
             return new ResponseEntity<>("Reservation expired!", HttpStatus.BAD_REQUEST);
         if (localDate.isBefore(exReservation.getStartDate()))
             return new ResponseEntity<>("Reservation did not start yet!", HttpStatus.BAD_REQUEST);
+
         exReservation.setStatus("check-out");
         reservationRepository.save(exReservation);
         return new ResponseEntity<>("Check-out performed!", HttpStatus.OK);
