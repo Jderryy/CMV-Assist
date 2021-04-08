@@ -164,14 +164,16 @@ public class ReservationService {
         if (existingReservation != null) {
             LocalDate start = existingReservation.getStartDate();
             LocalDate end = existingReservation.getEndDate();
-
             if (localDate.isEqual(end) || localDate.isAfter(end) || localDate.isBefore(start))
                 return new ResponseEntity<>("Could not perform check-in!", HttpStatus.BAD_REQUEST);
             if (existingReservation.getStatus().equals("check-in"))
                 return new ResponseEntity<>("Check-in already performed!", HttpStatus.BAD_REQUEST);
             if (existingReservation.getStatus().equals("check-out"))
                 return new ResponseEntity<>("Check-out has been performed!", HttpStatus.BAD_REQUEST);
+        }else{
+            return new ResponseEntity<>("Reservation with id <" + id + " does not exist.", HttpStatus.BAD_REQUEST);
         }
+
         existingReservation.setStatus("check-in");
         reservationRepository.save(existingReservation);
         return new ResponseEntity<>("Check-in performed!", HttpStatus.OK);
@@ -179,7 +181,7 @@ public class ReservationService {
 
     public ResponseEntity performCheckOut(int id) {
         Reservation exReservation = reservationRepository.findById(id).orElse(null);
-        if (!exReservation.getStatus().equals("check-in") || !exReservation.getStatus().equals("locked") || !exReservation.getStatus().equals("unlocked"))
+        if (!(exReservation.getStatus().equals("check-in") || exReservation.getStatus().equals("locked") || exReservation.getStatus().equals("unlocked")))
             return new ResponseEntity<>("You need to perform check-in first!", HttpStatus.BAD_REQUEST);
         if (localDate.isAfter(exReservation.getEndDate()))
             return new ResponseEntity<>("Reservation expired!", HttpStatus.BAD_REQUEST);

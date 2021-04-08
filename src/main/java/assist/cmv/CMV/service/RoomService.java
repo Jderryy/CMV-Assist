@@ -151,20 +151,17 @@ public class RoomService {
         return new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity cleanRoom(int id, int nfcTag) {
-        if(userRepository.existsById(id)){
-            List<Reservation> reservations= reservationRepository.findAll();
-            for(Reservation r : reservations){
-                if(r.getUserId()==id){
-                    Room room= repository.getOne(r.getRoomNumber());
-                    if(room.getNfcTag()==nfcTag){
-                        room.setCleaned(true);
-                        return new ResponseEntity("Cleaned succesful!", HttpStatus.OK);
-                    }
-                }
-            }
+    public ResponseEntity cleanRoom(int id) {
+        Room room = repository.findById(id).orElse(null);
+        if(room!=null) {
+            if(room.getCleaned()==false) {
+                room.setCleaned(true);
+                repository.save(room);
+                return new ResponseEntity<>("Room cleaned", HttpStatus.OK);
+            }}
+        else
+            return new ResponseEntity<>("Room not found", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Bad request", HttpStatus.BAD_REQUEST);
 
-        }
-        return new ResponseEntity("Bad request", HttpStatus.BAD_REQUEST);
     }
 }
