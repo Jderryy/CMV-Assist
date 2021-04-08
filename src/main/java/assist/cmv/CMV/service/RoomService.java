@@ -30,8 +30,6 @@ public class RoomService {
         Optional<Room> optionalRoom = Optional.ofNullable(room);
         String response = "";
         if (optionalRoom.isPresent()) {
-
-            //TODO la update nu se modifica id
             if (repository.existsById(room.getId()) && repository.countById(room.getId()) > 1)
                 response += "Room with id <" + room.getId() + "> already exists.\n";
             if (repository.existsRoomByNfcTag(room.getNfcTag()) && repository.countByNfcTag(room.getNfcTag()) > 0)

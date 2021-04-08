@@ -1,5 +1,6 @@
 package assist.cmv.CMV.controller;
 
+import assist.cmv.CMV.model.EmailSender;
 import assist.cmv.CMV.model.User;
 import assist.cmv.CMV.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +70,8 @@ public class UserController {
         return service.deleteUser(id);
     }
 
-    @GetMapping("/users/emails")
-    public ResponseEntity sendEmails(String body, String message) {
-        return service.sendEmailToAllUsers(body, message);
+    @PostMapping("/user/email")
+    public ResponseEntity sendEmails(@RequestBody EmailSender emailSender) {
+        return service.sendEmailToAllUsers(emailSender.getTitle(),emailSender.getMessage(),emailSender.getId());
     }
 }
